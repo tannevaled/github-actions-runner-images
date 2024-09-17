@@ -1,0 +1,83 @@
+version: '3'
+
+env:
+  COREUTILS_VERSION: '9.4'
+  BASH_VERSION: '5'
+  PACKER_VERSION: '1.11'
+  OPENSSH_VERSION: '9.8'
+  #CONSTRUCTOR_REPO_PATH: '{{.TASKFILE_DIR}}'
+  PROJECT_REPO_PATH: '{{.ROOT_DIR}}'
+  PROJECT_ENVIRONMENT_FILE_NAME: project.env
+  PROJECT_ENVIRONMENT_FILE_PATH: '{{PROJECT_REPO_PATH}}/{{.PROJECT_ENVIRONMENT_FILE_NAME}}'
+  TEMPLATES: '{{ .PROJECT_REPO_PATH }}/openstack/ubuntu/24.04/'
+  SOURCE: github-actions-runner-images.openstack.build_image
+
+tasks:
+  default:
+    desc: List tasks
+    cmds:
+    - task --list
+
+  packer:
+    vars:
+      PACKER_COMMAND: '{{.PACKER_COMMAND}}'
+    cmds:
+    - |
+
+      pkgx +gnu.org/coreutils^{{.COREUTILS_VERSION}} env \
+           --split-string \
+           --ignore-environment \
+           USER="{{.USER}}" \
+           HOME="{{.HOME}}" \
+           PATH="{{.HOME}}/.pkgx/bin:/bin:/usr/bin:/usr/local/bin" \
+           PKR_VAR_OPENSSH_VERSION="{{.OPENSSH_VERSION}}" \
+           pkgx +gnu.org/bash^{{.BASH_VERSION}} bash \
+                --login \
+                --noprofile \
+                --norc \
+                - <<'EOF'
+                eval "$(pkgx +openssh.com^{{.OPENSSH_VERSION}} ssh-agent -s)"
+                source "{{.PROJECT_ENVIRONMENT_FILE_PATH}}"
+                pkgx +packer.io^{{.PACKER_VERSION}} packer \
+                     {{.PACKER_COMMAND}} {{.PACKER_COMMAND_OPTIONS}} \
+                     "{{.TEMPLATES}}"
+                pkgx +openssh.com^{{.OPENSSH_VERSION}} ssh-agent -k
+      EOF
+
+  clone:
+    desc: Clone github-actions-runner github repository
+    vars:
+      SRC: https://github.com/actions/runner-images
+      DST: .provisioner
+    cmds:
+    - |
+
+      pkgx git clone {{.SRC}} {{.DST}}
+
+  init:
+    desc: Initialize packer
+    cmds:
+    - task: packer
+      vars:
+        PACKER_COMMAND: init
+        PACKER_COMMAND_OPTIONS:
+
+  build:
+    desc: Build image
+    deps:
+    - init
+    cmds:
+    - task: packer
+      vars:
+        PACKER_COMMAND: build
+        PACKER_COMMAND_OPTIONS: -timestamp-ui 
+
+  save:
+    desc: Save image
+    cmds:
+    - |
+
+      source "{{.PROJECT_ENVIRONMENT_FILE_PATH}}"
+      pkgx openstack image save \
+           --file ${PKR_VAR_TARGET_IMAGE_NAME} \
+           ${PKR_VAR_TARGET_IMAGE_NAME}
