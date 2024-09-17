@@ -1,5 +1,5 @@
 locals {
-  repo_path = "${path.root}../.."
+  repo_path = "${path.root}../../.."
   provisioner_path = "${local.repo_path}/.provisioner"
   scripts_path = "${local.provisioner_path}/images/ubuntu/scripts"
   assets_path  = "${local.provisioner_path}/images/ubuntu/assets"
