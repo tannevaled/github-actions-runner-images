@@ -1,6 +1,7 @@
 .provisioner/
 .vscode/
 project.env
-openstack/software-report.json
-openstack/Ubuntu2404-Readme.md
+.vscode/settings.json
+openstack/ubuntu/software-report.json
+openstack/ubuntu/Ubuntu2404-Readme.md
 .vscode/settings.json
