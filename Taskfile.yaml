@@ -5,6 +5,7 @@ env:
   BASH_VERSION: '5'
   PACKER_VERSION: '1.11'
   OPENSSH_VERSION: '9.8'
+  GNU_SED_VERSION: '4.9'
   #CONSTRUCTOR_REPO_PATH: '{{.TASKFILE_DIR}}'
   PROJECT_REPO_PATH: '{{.ROOT_DIR}}'
   PROJECT_ENVIRONMENT_FILE_NAME: project.env
@@ -62,10 +63,20 @@ tasks:
         PACKER_COMMAND: init
         PACKER_COMMAND_OPTIONS:
 
+  patch_configure-enviroment:
+    desc: Patch configure-environment.sh
+    cmds:
+    - |
+
+      pkgx +gnu.org/sed^{{.GNU_SED_VERSION}} sed \
+           -i "s|^[^#].*/etc/waagent.conf|#&|" \
+           {{.PROJECT_REPO_PATH}}/.provisioner/images/ubuntu/scripts/build/configure-environment.sh
+
   build:
     desc: Build image
     deps:
     - init
+    - patch_configure-environment
     cmds:
     - task: packer
       vars:
