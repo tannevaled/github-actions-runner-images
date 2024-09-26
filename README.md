@@ -1,8 +1,12 @@
-This code relies on [pkgx](https://pkgx.sh/?via=curl) to manage the versionned binary dependencies.
+This code relies on [pkgx](https://pkgx.sh/?via=curl) to manage the versionned binary dependencies.  
 Install it first.
-
 ```bash
-$ task
+$ curl -Ssf https://pkgx.sh | sh
+```
+
+## Usage
+```bash
+$ pkgx task
 task: Available tasks for this project:
 * build:                            Build image
 * clone:                            Clone github-actions-runner github repository
@@ -10,4 +14,10 @@ task: Available tasks for this project:
 * init:                             Initialize packer
 * patch_configure-enviroment:       Patch configure-environment.sh
 * save:                             Save image
+```
+
+## Build an image
+```bash
+$ pkgx task build
+...
 ```
