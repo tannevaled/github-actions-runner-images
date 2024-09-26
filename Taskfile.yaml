@@ -16,30 +16,8 @@ env:
 tasks:
   default:
     desc: List tasks
-    silent: true
     cmds:
     - task --list
-
-  clone:
-    desc: Clone github-actions-runner github repository
-    vars:
-      SRC: https://github.com/actions/runner-images
-      DST: .provisioner
-    cmds:
-    - |
-
-      pkgx git clone {{.SRC}} {{.DST}}
-
-  patch_configure-environment:
-    desc: Patch configure-environment.sh
-    deps:
-    - clone
-    cmds:
-    - |
-
-      pkgx +gnu.org/sed^{{.GNU_SED_VERSION}} sed \
-           -i "s|^[^#].*/etc/waagent.conf|#&|" \
-           {{.PROJECT_REPO_PATH}}/.provisioner/images/ubuntu/scripts/build/configure-environment.sh
 
   packer:
     vars:
@@ -67,6 +45,16 @@ tasks:
                 pkgx +openssh.com^{{.OPENSSH_VERSION}} ssh-agent -k
       EOF
 
+  clone:
+    desc: Clone github-actions-runner github repository
+    vars:
+      SRC: https://github.com/actions/runner-images
+      DST: .provisioner
+    cmds:
+    - |
+
+      pkgx git clone {{.SRC}} {{.DST}}
+
   init:
     desc: Initialize packer
     cmds:
@@ -75,13 +63,21 @@ tasks:
         PACKER_COMMAND: init
         PACKER_COMMAND_OPTIONS:
 
+  patch_configure-enviroment:
+    desc: Patch configure-environment.sh
+    cmds:
+    - |
+
+      pkgx +gnu.org/sed^{{.GNU_SED_VERSION}} sed \
+           -i "s|^[^#].*/etc/waagent.conf|#&|" \
+           {{.PROJECT_REPO_PATH}}/.provisioner/images/ubuntu/scripts/build/configure-environment.sh
 
   build:
     desc: Build image
     deps:
     - init
+    - patch_configure-environment
     cmds:
-    - task: patch_configure-environment
     - task: packer
       vars:
         PACKER_COMMAND: build
