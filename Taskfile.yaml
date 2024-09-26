@@ -64,7 +64,7 @@ tasks:
         PACKER_COMMAND: init
         PACKER_COMMAND_OPTIONS:
 
-  patch_configure-enviroment:
+  patch_configure-environment:
     desc: Patch configure-environment.sh
     cmds:
     - |
